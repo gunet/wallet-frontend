@@ -6,14 +6,14 @@ on:
   pull_request:
 
 jobs:
-  build-front:
+  push-front:
     permissions:
       contents: read
-      packages: read
+      packages: write
 
     uses: gunet/wallet-ecosystem/.github/workflows/docker-build-push.yml@dc-workflow
     secrets: inherit
     with:
       image-tag: ghcr.io/gunet/wallet-frontend:latest
-      docker-push: false
+      docker-push: true
       dockerfile-path: ./Dockerfile
