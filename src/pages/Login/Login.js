@@ -16,7 +16,7 @@ import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 
 const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
-	Boolean(process.env.REACT_APP_LOGIN_WITH_PASSWORD) == true :
+	JSON.parse(process.env.REACT_APP_LOGIN_WITH_PASSWORD) == 'true' :
 	false;
 
 const FormInputRow = ({
