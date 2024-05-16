@@ -35,6 +35,6 @@ COPY ./var_replacement.sh /
 
 EXPOSE 80
 
-RUN chmod +x /var_replacement.sh && cat /var_replacement.sh 
+RUN chmod +x /var_replacement.sh && cat /var_replacement.sh
 
 CMD /bin/sh /var_replacement.sh /variables.vars && nginx -g "daemon off;"
