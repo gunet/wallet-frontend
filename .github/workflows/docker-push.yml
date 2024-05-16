@@ -13,6 +13,6 @@ jobs:
     uses: gunet/wallet-ecosystem/.github/workflows/docker-build-push.yml@dc-workflow
     secrets: inherit
     with:
-      image-tag: ghcr.io/gunet/wallet-frontend:##[set-output name=version;]${GITHUB_REF#refs/heads/release/}
+      image-tag: ghcr.io/gunet/wallet-frontend:${GITHUB_REF#refs/heads/release/}
       docker-push: true
       dockerfile-path: ./Dockerfile
