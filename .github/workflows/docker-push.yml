@@ -1,8 +1,9 @@
 name: Push Docker image
 on:
   push:
-    branches:
-      - 'release/**'
+    tags:
+      - v0.*
+      - v1.*
 
 jobs:
   push-front:
@@ -13,6 +14,6 @@ jobs:
     uses: gunet/wallet-ecosystem/.github/workflows/docker-build-push.yml@dc-workflow
     secrets: inherit
     with:
-      image-tag: ghcr.io/gunet/wallet-frontend:${GITHUB_REF#refs/heads/release/}
+      image-tag: ghcr.io/gunet/wallet-frontend:${{ github.ref_name }}
       docker-push: true
       dockerfile-path: ./Dockerfile
