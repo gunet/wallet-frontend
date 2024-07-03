@@ -53,4 +53,3 @@ const RedirectPopup = ({ loading, handleClose, handleContinue, popupTitle, popup
 };
 
 export default RedirectPopup;
-
