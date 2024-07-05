@@ -65,6 +65,14 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 		});
 	}, []);
 
+	
+	useEffect(() => {
+		parseCredential(credential).then((c) => {
+			setParsedCredential(c);
+		});
+	}, [credential]);
+
+
 	return (
 		<div className={mainClassName}>
 			<table className="lg:w-4/5">
