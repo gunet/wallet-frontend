@@ -104,7 +104,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 							{renderRow('place', 'Town', parsedCredential.credentialSubject.placeOfWork?.town)}
 							{renderRow('place', 'Postal Code', parsedCredential.credentialSubject.placeOfWork?.postalCode)}
 							{renderRow('country', 'Country', parsedCredential.credentialSubject.placeOfWork?.countryCode)}
-						
+
 							{renderRow('id', 'Revocation ID', parsedCredential.credentialStatus && parsedCredential?.credentialStatus?.id?.split('#')[1])}
 						</>
 					)}
