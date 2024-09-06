@@ -9,7 +9,7 @@ import * as firebaseSW from './firebase';
 import Modal from 'react-modal';
 import './index.css';
 
-ConsoleBehavior();
+// ConsoleBehavior();
 
 Modal.setAppElement('#root');
 

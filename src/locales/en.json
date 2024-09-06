@@ -20,7 +20,7 @@
 		"save": "Save",
 		"submit": "Submit",
 		"tryAgain": "Try again",
-		"walletName": "wwWallet"
+		"walletName": "DC4EU Wallet"
 	},
 	"browserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
@@ -63,7 +63,7 @@
 		"incorrectCredentialsError": "Incorrect username or password",
 		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
 		"learnMoreAboutPrfCompatibility": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
-		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover wwWallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
+		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover DC4EU Wallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
 		"learnMoreAboutPrfCompatibilityAriaLabel": "Learn more about PRF Compatibility regarding browser/OS support",
 		"learnMoreAboutLaunchpadAriaLabel": "Discover our Launchpad",
 		"learnMoreAboutScenariosAriaLabel": "Learn more about sample scenarios",
@@ -107,7 +107,7 @@
 		"usernameLabel": "Username",
 		"useOtherAccount": "Use other Account",
 		"weakPasswordError": "Weak password",
-		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+		"welcomeMessage": "Welcome to <highlight>DC4EU Wallet</highlight>"
 	},
 	"messagePopup": {
 		"close": "Close",
@@ -265,7 +265,8 @@
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
 	"statusRibbon": {
-		"expired": "Expired"
+		"expired": "Expired",
+		"revoked": "Revoked"
 	},
 	"tourGuide": {
 		"tourStep1": "Here, you can view all your stored credentials. Click the 'Add New Credentials' card to get a new VC from an available Issuer",
@@ -279,9 +280,9 @@
 		"closeTourButton": "Close Tour"
 	},
 	"welcomeModal": {
-		"title": "Welcome to wwWallet!",
+		"title": "Welcome to DC4EU Wallet!",
 		"description": "Discover the <strong> {{walletName}} </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
-		"question": "Are you ready to explore the features of wwWallet through a guided tour?",
+		"question": "Are you ready to explore the features of DC4EU Wallet through a guided tour?",
 		"dismissButton": "Dismiss",
 		"startTourButton": "Start Tour"
 	}
