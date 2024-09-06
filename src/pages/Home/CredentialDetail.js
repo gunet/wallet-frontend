@@ -1,8 +1,8 @@
 // CredentialDetail.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 import { BiRightArrowAlt } from 'react-icons/bi';
 
@@ -14,9 +14,12 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
+import { H1 } from '../../components/Heading';
 
 const CredentialDetail = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const { id } = useParams();
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -29,7 +32,7 @@ const CredentialDetail = () => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
 			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier == id)[0];
+				.filter((vcEntity) => vcEntity.credentialIdentifier === id)[0];
 			if (!vcEntity) {
 				throw new Error("Credential not found");
 			}
@@ -62,18 +65,16 @@ const CredentialDetail = () => {
 	return (
 		<>
 			<div className=" sm:px-6">
-				<div className="flex flex-col sm:flex-row sm:items-center">
-					<div className="flex items-center">
-						<Link to="/">
-							<h1 className="text-2xl mb-2 font-bold text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline">{t('common.navItemCredentials')}</h1>
-						</Link>
-						<BiRightArrowAlt className="text-2xl mb-2 text-primary dark:text-primary-light" />
-					</div>
+				<H1
+					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
+					flexJustifyContent="start"
+					textColorClass="text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline"
+				>
+					<BiRightArrowAlt className="text-2xl mb-2 text-primary dark:text-primary-light" />
 					{vcEntity && (
-						<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{credentialFiendlyName}</h1>
+						<H1 heading={credentialFiendlyName} hr={false} />
 					)}
-				</div>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				</H1>
 				<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
 
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
@@ -125,10 +126,11 @@ const CredentialDetail = () => {
 					onConfirm={handleSureDelete}
 					onCancel={() => setShowDeletePopup(false)}
 					message={
-						<span>
-							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {credentialFiendlyName}</strong> {t('pageCredentials.deletePopup.messagePart2')}
-							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
-						</span>
+						<Trans
+							i18nKey="pageCredentials.deletePopupMessage"
+							values={{ credentialName: credentialFiendlyName }}
+							components={{ strong: <strong />, br: <br /> }}
+						/>
 					}
 					loading={loading}
 				/>

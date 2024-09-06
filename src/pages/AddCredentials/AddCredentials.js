@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { useApi } from '../../api';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
+import { H1 } from '../../components/Heading';
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -18,7 +20,8 @@ function highlightBestSequence(issuer, search) {
 }
 
 const Issuers = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
@@ -44,7 +47,7 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
-				const response = await api.get('/legal_person/issuers/all');
+				const response = await api.getExternalEntity('/legal_person/issuers/all');
 				const fetchedIssuers = response.data;
 				setIssuers(fetchedIssuers);
 				setFilteredIssuers(fetchedIssuers);
@@ -126,11 +129,9 @@ const Issuers = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<div className="flex justify-between items-center">
-					<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemAddCredentials')}</h1>
+				<H1 heading={t('common.navItemAddCredentials')}>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
-				</div>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				</H1>
 				<p className="italic text-gray-700 dark:text-gray-300">{t('pageAddCredentials.description')}</p>
 
 				<div className="my-4">
@@ -152,9 +153,11 @@ const Issuers = () => {
 						{filteredIssuers.map((issuer) => (
 							<button
 								key={issuer.id}
-								className="bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left"
+								className={`bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left ${!isOnline ? ' text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed' : 'cursor-pointer'}`}
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleIssuerClick(issuer.did)}
+								disabled={!isOnline}
+								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
 							</button>
@@ -169,7 +172,7 @@ const Issuers = () => {
 					handleClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.friendlyName}`}
-					popupMessage={`${t('pageAddCredentials.popup.messagePart1')} ${selectedIssuer?.friendlyName}${t('pageAddCredentials.popup.messagePart2')}`}
+					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.friendlyName })}
 				/>
 			)}
 

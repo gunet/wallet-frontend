@@ -126,6 +126,7 @@ export function WarningPortal({
 							docLink: <a
 								href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 								className="font-medium text-primary hover:underline dark:text-blue-500"
+								aria-label={t('learnMoreAboutPrfCompatibilityAriaLabel')}
 							/>
 						}}
 					/>
@@ -136,7 +137,6 @@ export function WarningPortal({
 				<GetButton
 					content={t('browserSupportWarningPortal.continueAnyway')}
 					onClick={() => setBypass(true)}
-					variant="custom"
 					additionalClassName='text-white bg-gray-300 hover:bg-gray-400 w-full'
 				/>
 			</>

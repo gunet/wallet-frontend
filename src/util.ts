@@ -14,6 +14,10 @@ export function toBase64Url(binary: BufferSource): string {
 	return toBase64(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
+export function byteArrayEquals(a: BufferSource, b: BufferSource): boolean {
+	return toBase64(a) === toBase64(b);
+}
+
 function base64pad(s: string): string {
 	const m = s.length % 4;
 	if (m === 0) {
@@ -72,3 +76,18 @@ export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
 		}
 	};
 }
+
+/**
+ * Wrap `action` so that it will not execute again for `timeoutMillis` milliseconds after each execution.
+ */
+export function throttle(action: () => void, timeoutMillis: number): () => void {
+	let ready = true;
+	const setReady = () => { ready = true; };
+	return () => {
+		if (ready) {
+			ready = false;
+			action();
+			setTimeout(setReady, timeoutMillis);
+		}
+	};
+};

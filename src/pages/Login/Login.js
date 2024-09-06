@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
@@ -6,18 +6,18 @@ import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
 
+import * as config from '../../config';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { useApi } from '../../api';
-import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
+import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
+import SessionContext from '../../context/SessionContext';
 
-const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
-	process.env.REACT_APP_LOGIN_WITH_PASSWORD == 'true' :
-	false;
 
 const FormInputRow = ({
 	IconComponent,
@@ -35,12 +35,12 @@ const FormInputRow = ({
 );
 
 const PasswordCriterionMessage = ({ text, ok }) => (
-	<p className={ok ? "text-green-500" : "text-red-500"}>
-		<span className="text-sm">
+	<div className={ok ? "text-green-500" : "text-red-500"}>
+		<p className="text-sm">
 			<AiOutlineUnlock className="inline-block mr-2" />
 			{text}
-		</span>
-	</p>
+		</p>
+	</div>
 );
 
 const FormInputField = ({
@@ -107,8 +107,13 @@ const WebauthnSignupLogin = ({
 	isLogin,
 	isSubmitting,
 	setIsSubmitting,
+	isLoginCache,
+	setIsLoginCache,
 }) => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const { keystore } = useContext(SessionContext);
+
+	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
@@ -120,7 +125,6 @@ const WebauthnSignupLogin = ({
 	const from = location.state?.from || '/';
 
 	const { t } = useTranslation();
-	const keystore = useLocalStorageKeystore();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
@@ -168,12 +172,16 @@ const WebauthnSignupLogin = ({
 						setError(t('loginSignup.passkeyLoginFailedServerError'));
 						break;
 
+					case 'x-private-data-etag':
+						setError(t('loginSignup.privateDataConflict'));
+						break;
+
 					default:
 						throw result;
 				}
 			}
 		},
-		[api, keystore, navigate, t],
+		[api, from, keystore, navigate, t],
 	);
 
 	const onSignup = useCallback(
@@ -216,6 +224,7 @@ const WebauthnSignupLogin = ({
 									docLink: <a
 										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 										className="font-medium text-primary hover:underline dark:text-blue-500"
+										aria-label={t('loginSignup.passkeySignupPrfNotSupportedAriaLabel')}
 									/>
 								}}
 							/>
@@ -233,7 +242,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[api, retrySignupFrom, keystore, navigate, t],
+		[api, from, retrySignupFrom, keystore, navigate, t],
 	);
 
 	const onSubmit = async (event) => {
@@ -264,6 +273,7 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onForgetCachedUser = (cachedUser) => {
+		setIsLoginCache(keystore.getCachedUsers().length - 1 > 0);
 		keystore.forgetCachedUser(cachedUser);
 	};
 
@@ -298,15 +308,15 @@ const WebauthnSignupLogin = ({
 								{
 									prfRetryAccepted
 										? (
-											<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+											<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-primary-light">Almost done!</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-primary-light">{t('registerPasskey.messageDone')}</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
-														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
-														: 'To finish setting up your wallet, please authenticate with your passkey once more.'
+														? t('loginSignup.authOnceMoreLogin')
+														: t('registerPasskey.authOnceMore')
 													}
 												</p>
 											</>
@@ -331,9 +341,12 @@ const WebauthnSignupLogin = ({
 							retrySignupFrom && !inProgress
 								? (
 									<div className="text-center">
-										<p className="dark:text-white pb-3">Something went wrong, please try again.</p>
-										<p className="dark:text-white pb-3">Please note that you need to use the same passkey you created in the previous step.</p>
-
+										<p className="dark:text-white pb-3">
+											<Trans
+												i18nKey="registerPasskey.messageErrorTryAgain"
+												components={{ br: <br /> }}
+											/>
+										</p>
 										<div className='flex justify-center gap-4'>
 
 											<GetButton
@@ -343,7 +356,7 @@ const WebauthnSignupLogin = ({
 											/>
 											<GetButton
 												type="submit"
-												content={t('loginSignup.tryAgain')}
+												content={t('common.tryAgain')}
 												variant="secondary"
 											/>
 										</div>
@@ -351,7 +364,7 @@ const WebauthnSignupLogin = ({
 								)
 								: (
 									<>
-										<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
 										<GetButton
 											content={t('common.cancel')}
 											onClick={onCancel}
@@ -393,9 +406,9 @@ const WebauthnSignupLogin = ({
 								</FormInputRow>
 							</>)}
 
-						{isLogin && (
+						{isLoginCache && (
 							<ul className="overflow-y-auto max-h-24 p-2 custom-scrollbar">
-								{cachedUsers.map((cachedUser) => (
+								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser) => (
 									<li
 										key={cachedUser.userHandleB64u}
 										className="w-full flex flex-row flex-nowrap mb-2"
@@ -431,27 +444,26 @@ const WebauthnSignupLogin = ({
 							</ul>
 						)}
 
-						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4" />}
-
-						<GetButton
-							type="submit"
-							content={
-								<>
-									<GoPasskeyFill className="inline text-xl mr-2" />
-									{isSubmitting
-										? t('loginSignup.submitting')
-										: isLogin
-											? cachedUsers?.length > 0
-												? t('loginSignup.loginOtherPasskey')
-												: t('loginSignup.loginPasskey')
-											: t('loginSignup.signupPasskey')
-									}
-								</>
-							}
-							variant="primary"
-							disabled={isSubmitting || nameByteLimitReached}
-							additionalClassName={`w-full ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
-						/>
+						{!isLoginCache && (
+							<GetButton
+								type="submit"
+								content={
+									<>
+										<GoPasskeyFill className="inline text-xl mr-2" />
+										{isSubmitting
+											? t('loginSignup.submitting')
+											: isLogin
+												? t('loginSignup.loginPasskey')
+												: t('loginSignup.signupPasskey')
+										}
+									</>
+								}
+								variant="primary"
+								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
+								additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+								title={!isLogin && !isOnline && t("common.offlineTitle")}
+							/>
+						)}
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
 				)
@@ -461,7 +473,9 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const api = useApi(isOnline);
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -476,15 +490,16 @@ const Login = () => {
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isContentVisible, setIsContentVisible] = useState(false);
+	const nodeRef = useRef(null);
 
 	const navigate = useNavigate();
-	const keystore = useLocalStorageKeystore();
+	const [isLoginCache, setIsLoginCache] = useState(keystore.getCachedUsers().length > 0);
 
 	useEffect(() => {
-		if (api.isLoggedIn()) {
+		if (isLoggedIn) {
 			navigate('/');
 		}
-	}, [api, navigate]);
+	}, [isLoggedIn, navigate]);
 
 	const { username, password, confirmPassword } = formData;
 
@@ -554,14 +569,16 @@ const Login = () => {
 
 	const toggleForm = (event) => {
 		event.preventDefault();
-		setIsLogin(!isLogin);
-		setError('');
-		setFormData({
-			username: '',
-			password: '',
-			confirmPassword: '',
-		});
-	};
+		if (isOnline || !isLogin) {
+			setIsLogin(!isLogin);
+			setError('');
+			setFormData({
+				username: '',
+				password: '',
+				confirmPassword: '',
+			});
+		};
+	}
 
 	const getPasswordStrength = (password) => {
 		const lengthScore = password.length >= 8 ? 25 : 0;
@@ -581,9 +598,9 @@ const Login = () => {
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
 
-			<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in">
+			<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in" nodeRef={nodeRef}>
 				<>
-					<div className='h-max min-h-screen'>
+					<div ref={nodeRef} className='h-max min-h-screen'>
 						<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[95vh]">
 							<a href="/" className="flex justify-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 								<img className="w-60" src={logo} alt="logo" />
@@ -605,7 +622,7 @@ const Login = () => {
 						</div> */}
 								<CheckBrowserSupport.Ctx>
 									<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
-										<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+										<div className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 											<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 												<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 												<Trans
@@ -614,14 +631,17 @@ const Login = () => {
 														docLinkPrf: <a
 															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 															className="font-medium text-primary dark:text-primary-light hover:underline"
+															aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
 														/>,
 														docLinkLaunchpad: <a
 															href="https://launchpad.wwwallet.org" target='blank_'
 															className="font-medium text-primary dark:text-primary-light hover:underline"
+															aria-label={t('loginSignup.learnMoreAboutLaunchpadAriaLabel')}
 														/>,
 														docLinkScenarios: <a
 															href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
 															className="font-medium text-primary dark:text-primary-light hover:underline"
+															aria-label={t('loginSignup.learnMoreAboutScenariosAriaLabel')}
 														/>
 													}}
 												/>
@@ -638,21 +658,36 @@ const Login = () => {
 													i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
 													components={{
 														docLinkPrf: <a
-															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility"
+															target='blank_'
 															className="font-medium text-primary hover:underline dark:text-blue-500"
+															aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
 														/>
 													}}
 												/>
 											</CheckBrowserSupport.If>
-										</p>
+										</div>
 									</CheckBrowserSupport.If>
 								</CheckBrowserSupport.Ctx>
-								<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
+								<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
 									<CheckBrowserSupport.WarningPortal>
 										<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-											{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+											{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 										</h1>
-										{(loginWithPassword) ?
+										<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+											{isOnline ? (
+												<PiWifiHighBold size={25} title={t('common.online')} />
+											) : (
+												<PiWifiSlashBold size={25} title={t('common.offline')} />
+											)}
+										</div>
+										{isOnline === false && (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+												<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+												{t('loginSignup.messageOffline')}
+											</p>
+										)}
+										{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
 											<>
 												<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 													{error && <div className="text-red-500">{error}</div>}
@@ -710,18 +745,33 @@ const Login = () => {
 											isLogin={isLogin}
 											isSubmitting={isSubmitting}
 											setIsSubmitting={setIsSubmitting}
+											isLoginCache={isLoginCache}
+											setIsLoginCache={setIsLoginCache}
 										/>
 
-										<p className="text-sm font-light text-gray-500 dark:text-gray-200">
-											{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
-											<a
-												href="/"
-												className="font-medium text-primary hover:underline dark:text-primary-light"
-												onClick={toggleForm}
-											>
-												{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
-											</a>
-										</p>
+										{!isLoginCache ? (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+												{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
+												<a
+													href={isLogin && isOnline ? "/" : ""}
+													className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+													title={`${isOnline === false && t('common.offlineTitle')}`}
+													onClick={toggleForm}
+												>
+													{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
+												</a>
+											</p>
+										) : (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
+												<a
+													className="font-medium text-primary hover:underline dark:text-primary-light"
+													onClick={() => setIsLoginCache(false)}
+												>
+													{t('loginSignup.useOtherAccount')}
+												</a>
+											</p>
+										)}
+
 									</CheckBrowserSupport.WarningPortal>
 								</div>
 							</div>
@@ -732,12 +782,16 @@ const Login = () => {
 									i18nKey="sidebar.poweredBy"
 									components={{
 										docLinkWalletGithub: <a
-											href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline text-primary dark:text-primary-light"
+											href="https://github.com/wwWallet"
+											rel="noreferrer"
+											target='blank_'
+											className="underline text-primary dark:text-primary-light"
+											aria-label={t('sidebar.poweredbyAriaLabel')}
 										/>
 									}}
 								/>
 							</p>
-							<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{process.env.REACT_APP_VERSION}</p>
+							<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{config.APP_VERSION}</p>
 
 						</div>
 					</div>

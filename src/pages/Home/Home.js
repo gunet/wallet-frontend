@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
@@ -21,6 +21,7 @@ import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
 import CredentialsContext from '../../context/CredentialsContext';
+import { H1 } from '../../components/Heading';
 
 const Home = () => {
 	const api = useApi();
@@ -101,11 +102,9 @@ const Home = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<div className="flex justify-between items-center">
-					<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemCredentials')}</h1>
+				<H1 heading={t('common.navItemCredentials')}>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
-				</div>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				</H1>
 				<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				<div className='my-4'>
 					{isSmallScreen ? (
@@ -119,6 +118,7 @@ const Home = () => {
 									<img
 										src={addImage}
 										className="w-full h-auto object-cover rounded-xl opacity-100 hover:opacity-120"
+										alt=""
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
@@ -133,7 +133,7 @@ const Home = () => {
 												<button key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 													onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
 													aria-label={`${vcEntity.friendlyName}`}
-													tabindex={(currentSlide != index + 1) && -1}
+													tabindex={(currentSlide !== index + 1) && -1}
 													title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
 												>
 													<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
@@ -190,6 +190,7 @@ const Home = () => {
 								<img
 									src={addImage}
 									className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
+									alt=""
 								/>
 								<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 									<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
@@ -225,10 +226,11 @@ const Home = () => {
 					onConfirm={handleSureDelete}
 					onCancel={() => setShowDeletePopup(false)}
 					message={
-						<span>
-							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {selectedVcEntity.credentialIdentifier}</strong> {t('pageCredentials.deletePopup.messagePart2')}
-							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
-						</span>
+						<Trans
+							i18nKey="pageCredentials.deletePopupMessage"
+							values={{ credentialName: selectedVcEntity.friendlyName }}
+							components={{ strong: <strong />, br: <br /> }}
+						/>
 					}
 					loading={loading}
 				/>

@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { useApi } from '../../api';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
+import { H1 } from '../../components/Heading';
+
 
 function highlightBestSequence(verifier, search) {
 	if (typeof verifier !== 'string' || typeof search !== 'string') {
@@ -18,7 +21,8 @@ function highlightBestSequence(verifier, search) {
 }
 
 const Verifiers = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [verifiers, setVerifiers] = useState([]);
 	const [filteredVerifiers, setFilteredVerifiers] = useState([]);
@@ -111,11 +115,9 @@ const Verifiers = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<div className="flex justify-between items-center">
-					<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemSendCredentials')}</h1>
+				<H1 heading={t('common.navItemSendCredentials')}>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
-				</div>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				</H1>
 				<p className="italic text-gray-700 dark:text-gray-300">{t('pageSendCredentials.description')}</p>
 
 				<div className="my-4">
@@ -138,9 +140,11 @@ const Verifiers = () => {
 						{filteredVerifiers.map((verifier) => (
 							<button
 								key={verifier.id}
-								className="bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left"
+								className={`bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left ${!isOnline ? ' text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed' : 'cursor-pointer'}`}
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleVerifierClick(verifier.did)}
+								disabled={!isOnline}
+								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
 							</button>
@@ -154,8 +158,8 @@ const Verifiers = () => {
 					loading={loading}
 					handleClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedVerifier?.name}`}
-					popupMessage={`${t('pageSendCredentials.popup.messagePart1')} ${selectedVerifier?.name}${t('pageSendCredentials.popup.messagePart2')}`}
+					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
+					popupMessage={t('pageSendCredentials.popup.message', { verifierName: selectedVerifier?.name })}
 				/>
 			)}
 

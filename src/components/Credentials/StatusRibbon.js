@@ -40,9 +40,8 @@ const StatusRibbon = ({ credential }) => {
 	useEffect(() => {
 		parseCredential(credential).then((c) => {
 			setParsedCredential(c);
-		})
-	}, []);
-
+		});
+	}, [credential]);
 
 	useEffect(() => {
 		if (parsedCredential != null) {
