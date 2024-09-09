@@ -77,33 +77,30 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential && (
 						<>
-							{renderRow('expdate', 'Valid From', parsedCredential.credentialSubject?.validityPeriod?.startingDate && formatDate(parsedCredential.credentialSubject?.validityPeriod?.startingDate))}
-							{renderRow('expdate', 'Expiration', parsedCredential.credentialSubject?.validityPeriod?.endingDate && formatDate(parsedCredential.credentialSubject?.validityPeriod?.endingDate))}
 
+							{renderRow('expdate', 'Valid From', parsedCredential.validFrom && formatDate(parsedCredential.validFrom))}
+							{renderRow('expdate', 'Expiration', parsedCredential.expirationDate && formatDate(parsedCredential.expirationDate))}
 
-							{renderRow('expdate', 'Valid From', parsedCredential.credentialSubject?.decisionOnApplicableLegislation?.validityPeriod?.startingDate && formatDate(parsedCredential.credentialSubject?.decisionOnApplicableLegislation?.validityPeriod?.startingDate))}
-							{renderRow('expdate', 'Expiration', parsedCredential.credentialSubject?.decisionOnApplicableLegislation?.validityPeriod?.endingDate && formatDate(parsedCredential.credentialSubject?.decisionOnApplicableLegislation?.validityPeriod?.endingDate))}
-
-
-							{renderRow('familyName', 'Family Name', parsedCredential.credentialSubject.familyName)}
-							{renderRow('firstName', 'First Name', parsedCredential.credentialSubject.firstName)}
-							{renderRow('id', 'Personal ID', parsedCredential.type.includes('urn:credential:vid') && parsedCredential.credentialSubject.personalIdentifier)}
+							{renderRow('familyName', 'Family Name', parsedCredential.credentialSubject.family_name)}
+							{renderRow('firstName', 'Given Name', parsedCredential.credentialSubject.given_name)}
+							{renderRow('id', 'Personal ID', parsedCredential.type.includes('urn:credential:vid') && parsedCredential.credentialSubject.personal_identifier)}
 							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.dateOfBirth)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.birthdate)}
+							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject?.birth_date && new Date(parsedCredential.credentialSubject?.birth_date).toDateString())}
 
-							{renderRow('id', 'SSN', parsedCredential.credentialSubject.socialSecurityIdentification?.ssn)}
-							{renderRow('id', 'Document ID', parsedCredential.credentialSubject.documentId)}
-							{renderRow('id', 'ID Competent Institution', parsedCredential.credentialSubject.competentInstitution?.competentInstitutionId)}
-							{renderRow('institution', 'Name Competent Institution', parsedCredential.credentialSubject.competentInstitution?.competentInstitutionName)}
-							{renderRow('country', 'Country Competent Institution', parsedCredential.credentialSubject.competentInstitution?.competentInstitutionCountryCode)}
+							{renderRow('id', 'SSN', parsedCredential.credentialSubject.social_security_pin)}
+							{renderRow('id', 'Document ID', parsedCredential.credentialSubject?.pda1_document_id ?? parsedCredential.credentialSubject?.ehic_card_identification_number ?? undefined )}
 
-							{renderRow('id', 'MS Legislation', parsedCredential.credentialSubject.decisionOnApplicableLegislation?.decisionOnMSWhoseLegislationApplies.memberStateWhoseLegislationIsToBeApplied)}
-							{renderRow('familyName', 'Employer Name', parsedCredential.credentialSubject.employer?.name)}
-							{renderRow('country', 'Employer Country', parsedCredential.credentialSubject.employer?.countryCode)}
-							{renderRow('place', 'Place of Work', parsedCredential.credentialSubject.placeOfWork?.companyName)}
-							{renderRow('place', 'Town', parsedCredential.credentialSubject.placeOfWork?.town)}
-							{renderRow('place', 'Postal Code', parsedCredential.credentialSubject.placeOfWork?.postalCode)}
-							{renderRow('country', 'Country', parsedCredential.credentialSubject.placeOfWork?.countryCode)}
+							{renderRow('id', 'ID Competent Institution', parsedCredential.credentialSubject.ehic_institution_id)}
+							{renderRow('institution', 'Name Competent Institution', parsedCredential.credentialSubject.ehic_institution_name)}
+							{renderRow('country', 'Country Competent Institution', parsedCredential.credentialSubject.ehic_institution_country_code)}
+
+							{renderRow('id', 'MS Legislation', parsedCredential.pda1_member_state)}
+							{renderRow('familyName', 'Employer Name', parsedCredential.credentialSubject.pda1_name)}
+							{renderRow('country', 'Employer Country', parsedCredential.credentialSubject.pda1_employer_country_code)}
+							{renderRow('place', 'Place of Work', parsedCredential.credentialSubject.pda1_pow_company_name)}
+							{renderRow('place', 'Town', parsedCredential.credentialSubject.pda1_pow_employer_town)}
+							{renderRow('place', 'Postal Code', parsedCredential.credentialSubject.pda1_pow_employer_postal_code)}
+							{renderRow('country', 'Country', parsedCredential.credentialSubject.pda1_pow_employer_country_code)}
 
 							{renderRow('id', 'Revocation ID', parsedCredential.credentialStatus && parsedCredential?.credentialStatus?.id?.split('#')[1])}
 						</>
