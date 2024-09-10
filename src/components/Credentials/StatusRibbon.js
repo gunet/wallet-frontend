@@ -53,7 +53,7 @@ const StatusRibbon = ({ credential }) => {
 				else if (CheckExpired(parsedCredential.expirationDate)) {
 					setCredentialStatus('expired');
 				}
-			});
+			}).catch(() => null);
 		}
 	}, [parsedCredential]);
 
